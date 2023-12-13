@@ -1,6 +1,7 @@
 # bitcoin_api
 
 A new Flutter project.
+Done with course "The Complete Flutter Development Bootcamp with Dart" on Udemy.
 
 ## Getting Started
 
