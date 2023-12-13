@@ -28,7 +28,10 @@ class _PriceScreenState extends State<PriceScreen> {
       items: dropdownItems,
       onChanged: (value) {
         setState(() {
+          // Save the selected currency to the property selectedCurrency
           selectedCurrency = value!;
+          // Call getData() when the picker/dropdown changes
+          getData();
         });
       },
     );
@@ -44,7 +47,12 @@ class _PriceScreenState extends State<PriceScreen> {
       backgroundColor: Colors.lightBlue,
       itemExtent: 32.0,
       onSelectedItemChanged: (selectedIndex) {
-        print(selectedIndex);
+        setState(() {
+          // Save the selected currency to the property selectedCurrency
+          selectedCurrency = currenciesList[selectedIndex];
+          // Call getData() when the picker/dropdown changes
+          getData();
+        });
       },
       children: pickerItems,
     );
@@ -53,7 +61,7 @@ class _PriceScreenState extends State<PriceScreen> {
   // Async method that awaits the coin data from coin_data.dart
   void getData() async {
     try {
-      double data = await CoinData().getCoinData();
+      double data = await CoinData().getCoinData(selectedCurrency);
       setState(() {
         bitcoinValueInUSD = data.toStringAsFixed(0);
       });
@@ -89,7 +97,7 @@ class _PriceScreenState extends State<PriceScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
                 child: Text(
-                  '1 BTC = $bitcoinValueInUSD USD',
+                  '1 BTC = $bitcoinValueInUSD $selectedCurrency',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 20.0,
