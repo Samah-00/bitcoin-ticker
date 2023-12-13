@@ -37,27 +37,30 @@ const apiKey = '83979A83-EF22-4BFF-AB8A-F85F6EF38D07';
 class CoinData {
   // Asynchronous method that returns a Future (the price data).
   Future getCoinData(String selectedCurrency) async {
-    // Create the url by combining the coinAPIURL with the currencies
-    String requestURL = '$coinAPIURL/BTC/$selectedCurrency?apikey=$apiKey';
+    Map<String, String> cryptoPrices = {};
 
-    // Convert the string URL to a Uri object
-    Uri uri = Uri.parse(requestURL);
+    // Loop through the cryptoList and request the data for each of them in turn
+    for (String crypto in cryptoList) {
+      // Create the url by combining the coinAPIURL with the currency and crypto
+      String requestURL = '$coinAPIURL/$crypto/$selectedCurrency?apikey=$apiKey';
+      // Convert the string URL to a Uri object
+      Uri uri = Uri.parse(requestURL);
+      // Make a GET request to the URL and wait for the response
+      http.Response response = await http.get(uri);
 
-    // Make a GET request to the URL and wait for the response
-    http.Response response = await http.get(uri);
-
-    if (response.statusCode == 200) {
-      // decode the JSON data that comes back from coinapi.io
-      var decodedData = jsonDecode(response.body);
-      // Get the last price of bitcoin with the key 'rate'
-      var lastPrice = decodedData['rate'];
-
-      return lastPrice;
-    } else {
-      // Handle any errors that occur during the request
-      print(response.statusCode);
-      // Throw an error if our request fails
-      throw 'Problem with the get request';
+      if (response.statusCode == 200) {
+        var decodedData = jsonDecode(response.body);
+        double lastPrice = decodedData['rate'];
+        // Create a new key value pair with the key being the crypto symbol
+        // and the value being the lastPrice of that crypto currency
+        cryptoPrices[crypto] = lastPrice.toStringAsFixed(0);
+      } else {
+        // Handle any errors that occur during the request
+        print(response.statusCode);
+        // Throw an error if our request fails
+        throw 'Problem with the get request';
+      }
     }
+    return cryptoPrices;
   }
 }

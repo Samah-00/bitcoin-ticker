@@ -3,7 +3,11 @@ import 'package:flutter/cupertino.dart';
 import 'coin_data.dart';
 import 'dart:io' show Platform;
 
+import 'package:bitcoin_api/crypto_card.dart';
+
 class PriceScreen extends StatefulWidget {
+  const PriceScreen({super.key});
+
   @override
   _PriceScreenState createState() => _PriceScreenState();
 }
@@ -11,14 +15,17 @@ class PriceScreen extends StatefulWidget {
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = 'USD';
   String bitcoinValueInUSD = '?';
-
+  // Map to store the values of all three cryptocurrencies
+  Map<String, String> coinValues = {};
+  // A variable to keep track of when we're waiting on the request to complete.
+  bool isWaiting = false;
 
   DropdownButton<String> androidDropdown() {
     List<DropdownMenuItem<String>> dropdownItems = [];
     for (String currency in currenciesList) {
       var newItem = DropdownMenuItem(
-        child: Text(currency),
         value: currency,
+        child: Text(currency),
       );
       dropdownItems.add(newItem);
     }
@@ -58,12 +65,31 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
+   Column makeCards() {
+   List<CryptoCard> cryptoCards = [];
+   for (String crypto in cryptoList) {
+     cryptoCards.add(
+       CryptoCard(
+         cryptoCurrency: crypto,
+         selectedCurrency: selectedCurrency,
+         value: isWaiting ? '?' : coinValues[crypto] ?? 'N/A',
+       ),
+     );
+   }
+   return Column(
+     crossAxisAlignment: CrossAxisAlignment.stretch,
+     children: cryptoCards,
+   );
+ }
+
   // Async method that awaits the coin data from coin_data.dart
   void getData() async {
+    isWaiting = true;
     try {
-      double data = await CoinData().getCoinData(selectedCurrency);
+      Map<String, String> data = await CoinData().getCoinData(selectedCurrency);
+      isWaiting = false;
       setState(() {
-        bitcoinValueInUSD = data.toStringAsFixed(0);
+        coinValues = data;
       });
     } catch (e) {
       print(e);
@@ -86,27 +112,7 @@ class _PriceScreenState extends State<PriceScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  '1 BTC = $bitcoinValueInUSD $selectedCurrency',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
+          makeCards(),
           Container(
             height: 150.0,
             alignment: Alignment.center,
